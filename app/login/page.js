@@ -1,8 +1,9 @@
 'use client'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { sb } from '../../lib/supabase'
 export default function Login(){
  const [em,setEm]=useState(''),[pw,setPw]=useState(''),[reg,setReg]=useState(false),[m,setM]=useState('')
+ useEffect(()=>{setReg(new URLSearchParams(location.search).get('reg')==='1')},[])
  async function go(e){e.preventDefault();setM('')
   const r=reg?await sb.auth.signUp({email:em,password:pw}):await sb.auth.signInWithPassword({email:em,password:pw})
   if(r.error)return setM(r.error.message)
