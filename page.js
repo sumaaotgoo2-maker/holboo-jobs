@@ -1,22 +1,18 @@
 'use client'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { sb } from '../../lib/supabase'
-import { CITIES, CATS } from '../../lib/useLoc'
-export default function Post(){
- const [m,setM]=useState(''),[busy,setBusy]=useState(false)
- async function go(e){e.preventDefault();const form=e.target,{website,urgent,...f}=Object.fromEntries(new FormData(form))
-  if(website)return;setBusy(true);setM('')
-  const {error}=await sb.from('jobs').insert({...f,urgent:urgent==='on'});setBusy(false)
-  if(error)return setM('Алдаа гарлаа: '+error.message)
-  form.reset();setM('✅ Зар илгээгдлээ. Админ баталгаажуулсны дараа сайтад гарна.')}
- return <main className="wrap"><h1>Ажлын зар нэмэх</h1><p className="meta">Нэвтрэх шаардлагагүй. Зар шалгагдсаны дараа нийтлэгдэнэ.</p>
-  <form onSubmit={go}><input name="title" placeholder="Ажлын нэр *" required/><input name="company" placeholder="Байгууллагын нэр *" required/>
-  <select name="location">{CITIES.map(x=><option key={x}>{x}</option>)}</select>
-  <select name="type">{['Бүтэн цаг','Хагас цаг','Гэрээт','Вахтын ажил'].map(x=><option key={x}>{x}</option>)}</select>
-  <select name="category">{CATS.map(x=><option key={x}>{x}</option>)}</select>
-  <input name="salary" placeholder="Цалин (жишээ: 2–3 сая ₮)"/><textarea name="description" rows={6} placeholder="Ажлын тайлбар, шаардлага *" required/>
-  <input name="contact" placeholder="Холбогдох имэйл эсвэл утас *" required/>
-  <label><input type="checkbox" name="urgent"/>🔥 Яаралтай ажилтан хэрэгтэй</label>
-  <input name="website" tabIndex={-1} autoComplete="off" style={{position:'absolute',left:'-9999px'}} aria-hidden="true"/>
-  <button disabled={busy}>{busy?'Илгээж байна…':'Илгээх'}</button><p className="msg">{m}</p></form></main>
+export default function Login(){
+ const [em,setEm]=useState(''),[pw,setPw]=useState(''),[reg,setReg]=useState(false),[m,setM]=useState('')
+ useEffect(()=>{setReg(new URLSearchParams(location.search).get('reg')==='1')},[])
+ async function go(e){e.preventDefault();setM('')
+  const r=reg?await sb.auth.signUp({email:em,password:pw}):await sb.auth.signInWithPassword({email:em,password:pw})
+  if(r.error)return setM(r.error.message)
+  if(reg&&!r.data.session)return setM('Имэйлээ шалгаад холбоосыг дарж баталгаажуулна уу.')
+  if(r.data.session){const {data:ad}=await sb.rpc('is_admin');location.href=ad===true?'/admin':'/';return}
+  location.href='/'}
+ return <main className="wrap"><h1>{reg?'Бүртгүүлэх':'Нэвтрэх'}</h1>
+  <form onSubmit={go}><input type="email" placeholder="Имэйл" required value={em} onChange={e=>setEm(e.target.value)}/>
+   <input type="password" placeholder="Нууц үг (6+ тэмдэгт)" minLength={6} required value={pw} onChange={e=>setPw(e.target.value)}/>
+   <button>{reg?'Бүртгүүлэх':'Нэвтрэх'}</button><p className="msg">{m}</p>
+   <p className="meta"><a href="#" onClick={e=>{e.preventDefault();setReg(!reg)}}>{reg?'Бүртгэлтэй юу? Нэвтрэх':'Бүртгэлгүй юу? Бүртгүүлэх'}</a></p></form></main>
 }
