@@ -8,6 +8,7 @@ export default function Login(){
   const r=reg?await sb.auth.signUp({email:em,password:pw}):await sb.auth.signInWithPassword({email:em,password:pw})
   if(r.error)return setM(r.error.message)
   if(reg&&!r.data.session)return setM('Имэйлээ шалгаад холбоосыг дарж баталгаажуулна уу.')
+  if(r.data.session){const {data:ad}=await sb.rpc('is_admin');location.href=ad===true?'/admin':'/';return}
   location.href='/'}
  return <main className="wrap"><h1>{reg?'Бүртгүүлэх':'Нэвтрэх'}</h1>
   <form onSubmit={go}><input type="email" placeholder="Имэйл" required value={em} onChange={e=>setEm(e.target.value)}/>
