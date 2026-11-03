@@ -1,0 +1,12 @@
+'use client'
+import { useEffect, useState } from 'react'
+import { sb } from '../lib/supabase'
+export default function Header(){
+ const [u,setU]=useState(null),[ad,setAd]=useState(false)
+ useEffect(()=>{sb.auth.getSession().then(({data})=>setU(data.session?.user??null))
+  const {data}=sb.auth.onAuthStateChange((_e,s)=>setU(s?.user??null));return()=>data.subscription.unsubscribe()},[])
+ useEffect(()=>{if(!u){setAd(false);return}sb.rpc('is_admin').then(({data})=>setAd(data===true))},[u])
+ return <header><div className="bar wrap"><a className="brand" href="/"><img src="/logo.png" alt="Холбоё" height="54"/></a>
+  <nav><a href="/">Нүүр хуудас</a><a href="/jobs">Ажлын байр</a><a href="/seekers">Ажил хайгчид</a><a href="/post">Зар нэмэх</a><a href="/ads">Реклам, үнэ</a>{ad&&<a href="/admin">⚙️ Админ</a>}</nav>
+  <div className="auth">{u?<a className="lnk" href="#" onClick={e=>{e.preventDefault();sb.auth.signOut()}}>Гарах</a>:<><a className="lnk" href="/login">Нэвтрэх</a><a className="btn-p" href="/login?reg=1">Бүртгүүлэх</a></>}</div></div></header>
+}
